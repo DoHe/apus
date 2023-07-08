@@ -1,9 +1,8 @@
 import './shim.js';
 import { createServer } from 'http';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as url from 'url';
-import { html } from '../universal/utils.js';
+import { html } from '../universal/utils/tags.js';
+import { log } from '../universal/utils/logging.js';
+import serveStatic from './static.js';
 
 const hostname = '127.0.0.1';
 const port = 8080;
@@ -25,41 +24,11 @@ const mainTemplate = (component, componentImport) => html`
 </html>
 `;
 
-const serveStatic = async (req, res, staticDir) => {
-  const parsedUrl = url.parse(req.url);
-  const pathname = `${staticDir}${parsedUrl.pathname}`;
-  const { ext } = path.parse(pathname);
-  const map = {
-    '.ico': 'image/x-icon',
-    '.html': 'text/html',
-    '.js': 'text/javascript',
-    '.json': 'application/json',
-    '.css': 'text/css',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.wav': 'audio/wav',
-    '.mp3': 'audio/mpeg',
-    '.svg': 'image/svg+xml',
-    '.pdf': 'application/pdf',
-    '.doc': 'application/msword',
-  };
-
-  try {
-    const data = await fs.readFile(pathname, 'utf8');
-    res.statusCode = 200;
-    res.setHeader('Content-type', map[ext] || 'text/plain');
-    res.end(data);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
 const server = createServer(async (req, res) => {
-  console.log(`Request for: ${req.url}`);
+  log('request', { url: req.url });
   const handled = await serveStatic(req, res, '.');
   if (handled) {
-    console.log('serverd by static');
+    log('serverd by static');
     return;
   }
 
@@ -72,5 +41,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+  log('server started', { hostname, port });
 });

@@ -1,4 +1,5 @@
-import { html } from './utils.js';
+import { html } from './utils/tags.js';
+import { info, warn } from './utils/logging.js';
 
 const shadowTemplate = (data) => html`
   <button>+</button>
@@ -24,7 +25,7 @@ class ButtonCounter extends HTMLElement {
     const internals = this.attachInternals();
     this.shadow = internals.shadowRoot;
     if (!this.shadow) {
-      console.log('no shadow');
+      warn('no shadow', { source: this });
       this.shadow = this.attachShadow({
         mode: 'open',
       });
@@ -44,12 +45,16 @@ class ButtonCounter extends HTMLElement {
   }
 
   attributeChangedCallback(property, oldValue, newValue) {
-    console.log('attribute changed');
+    info('attribute changed', {
+      property, oldValue, newValue, source: this,
+    });
     this.handleValueChange(property, oldValue, newValue);
   }
 
   handleValueChange(property, oldValue, newValue) {
-    console.log('value changed');
+    info('value changed', {
+      property, oldValue, newValue, source: this,
+    });
     if (oldValue === newValue) return;
     this[property] = newValue;
     if (property === 'count') {
@@ -59,7 +64,7 @@ class ButtonCounter extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('Connected');
+    info('connected', { source: this });
   }
 
   changedCount() {
