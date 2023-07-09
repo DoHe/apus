@@ -1,9 +1,9 @@
 function logMessage(message, data) {
-  return {
+  return JSON.stringify({
     ts: (new Date()).toISOString(),
     message,
     ...data,
-  };
+  });
 }
 
 function info(message, data = {}) {

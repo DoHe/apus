@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { html } from '../universal/utils/tags.js';
 import { log } from '../universal/utils/logging.js';
 import serveStatic from './static.js';
+import ApusComponent from '../universal/apus-component.js';
 
 const hostname = '127.0.0.1';
 const port = 8080;
@@ -34,9 +35,11 @@ const server = createServer(async (req, res) => {
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/html');
-  const module = await import('../universal/counter.js');
-  const renderedComponentTemplate = module.template({});
-  const renderedMainTemplate = mainTemplate(renderedComponentTemplate, 'universal/counter.js');
+  const module = await import('../universal/counter-apus.js');
+  const ComponentClass = module.default;
+  const component = new ComponentClass();
+  const renderedComponentTemplate = component.compileTemplate({});
+  const renderedMainTemplate = mainTemplate(renderedComponentTemplate, 'universal/counter-apus.js');
   res.end(renderedMainTemplate);
 });
 
