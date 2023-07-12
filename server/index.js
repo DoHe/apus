@@ -3,7 +3,6 @@ import { createServer } from 'http';
 import { html } from '../universal/utils/tags.js';
 import { log } from '../universal/utils/logging.js';
 import serveStatic from './static.js';
-import ApusComponent from '../universal/apus-component.js';
 
 const hostname = '127.0.0.1';
 const port = 8080;
@@ -15,6 +14,12 @@ const mainTemplate = (component, componentImport) => html`
 <head>
   <meta charset="utf-8">
   <title>Apus</title>
+  <link rel="prefetch" href="/universal/utils/tags.js" />
+  <link rel="prefetch" href="/universal/utils/ids.js" />
+  <link rel="prefetch" href="/universal/utils/logging.js" />
+  <link rel="prefetch" href="/universal/utils/strings.js" />
+  <link rel="prefetch" href="/universal/utils/environment.js" />
+  <link rel="prefetch" href="/universal/universal/apus-component.js" />
 </head>
 
 <body>
