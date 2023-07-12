@@ -8,9 +8,13 @@ class CounterApus extends ApusComponent {
 
   template() {
     return html`
-    <button>+</button>
+    <button @click="increaseCount">+</button>
     {{ count }}
   `;
+  }
+
+  increaseCount() {
+    this.handleValueChange('count', this.data.count, this.data.count + 1);
   }
 }
 

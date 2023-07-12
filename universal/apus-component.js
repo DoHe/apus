@@ -1,6 +1,10 @@
+import { uniqueId } from './utils/ids.js';
 import { info, warn } from './utils/logging.js';
 import { kebabize } from './utils/strings.js';
-import { html, isBrowser } from './utils/tags.js';
+import { html } from './utils/tags.js';
+import { isBrowser } from './utils/environment.js';
+
+const eventRegex = /(?<all>(data-eventid="(?<id>\S*)" )?@(?<event>\S*)="(?<funct>\S*)")/g;
 
 class ApusComponent extends HTMLElement {
   constructor() {
@@ -22,7 +26,6 @@ class ApusComponent extends HTMLElement {
       this.data[propName] = prop.default;
     });
 
-    info('browser', { isBrowser: isBrowser() });
     if (isBrowser()) {
       const internals = this.attachInternals();
       this.shadow = internals.shadowRoot;
@@ -34,9 +37,7 @@ class ApusComponent extends HTMLElement {
         this.shadow.innerHTML = this.compileTemplate();
       }
 
-      this.shadow.querySelector('button').addEventListener('click', () => {
-        this.handleValueChange('count', this.data.count, this.data.count + 1);
-      });
+      this.registerEvents();
     }
   }
 
@@ -70,7 +71,7 @@ class ApusComponent extends HTMLElement {
         default:
       }
       this.data[property] = parsedNewValue;
-      this.shadow.querySelector(`#${property}`).innerHTML = newValue;
+      this.shadow.querySelector(`[data-propid="${property}"]`).innerHTML = newValue;
     }
   }
 
@@ -78,24 +79,44 @@ class ApusComponent extends HTMLElement {
     info('connected', { source: this });
   }
 
+  registerEvents() {
+    const matches = this.shadow.innerHTML.matchAll(eventRegex);
+    for (const match of matches) {
+      const { id, event, funct } = match.groups;
+      if (!id || !event || !funct) {
+        continue;
+      }
+      this.shadow.querySelector(`[data-eventid="${id}"]`).addEventListener(
+        event,
+        this[funct].bind(this),
+      );
+    }
+  }
+
   compileTemplate() {
-    const elementName = kebabize(this.constructor.name);
+    const componentName = kebabize(this.constructor.name);
 
     let templateString = this.template();
     Object.keys(this.props()).forEach((propName) => {
       templateString = templateString.replace(
         `{{ ${propName} }}`,
-        `<span id="${propName}">${this.data[propName]}</span>`,
+        `<span data-propid="${propName}">${this.data[propName]}</span>`,
       );
     });
 
+    const uuid = uniqueId();
+    templateString = templateString.replace(
+      eventRegex,
+      `data-eventid="${uuid}" $<all>`,
+    );
+
     return html`
-      <${elementName} ${this.propsTemplate(this.data)}">
-        <template shadowrootmode="open">
-          ${templateString}
-        </template>
-      </${elementName}>
-    `;
+    <${componentName} ${this.propsTemplate(this.data)}">
+      <template shadowrootmode="open">
+        ${templateString}
+      </template>
+    </${componentName}>
+  `;
   }
 
   propsTemplate() {

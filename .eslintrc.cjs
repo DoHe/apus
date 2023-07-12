@@ -25,6 +25,8 @@ module.exports = {
   rules: {
     'import/extensions': 'off',
     'import/prefer-default-export': 'off',
-    'class-methods-use-this': 'off'
+    'class-methods-use-this': 'off',
+    'no-restricted-syntax': 'off',
+    'no-continue': 'off',
   },
 };
