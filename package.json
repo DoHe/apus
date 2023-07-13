@@ -4,7 +4,7 @@
   "description": "A modern web framework",
   "main": "component1.js",
   "scripts": {
-    "start": "nodemon server/index.js",
+    "start": "nodemon app/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "@dohe",
