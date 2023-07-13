@@ -1,7 +1,10 @@
-import './shim.js';
+import * as url from 'url';
+import { relative } from 'path';
 import { createServer } from 'http';
+
+import './shim.js';
 import { html } from '../universal/utils/tags.js';
-import { log } from '../universal/utils/logging.js';
+import { info, log } from '../universal/utils/logging.js';
 import serveStatic from './static.js';
 
 const DEFAULT_HOSTNAME = '127.0.0.1';
@@ -32,24 +35,33 @@ const mainTemplate = (component, componentImport) => html`
 </html>
 `;
 
-function serve(port = DEFAULT_PORT, hostname = DEFAULT_HOSTNAME) {
-  const server = createServer(async (req, res) => {
-    log('request', { url: req.url });
-    const handled = await serveStatic(req, res, '.');
-    if (handled) {
-      log('serverd by static');
-      return;
-    }
+const createHandler = (config) => (async (req, res) => {
+  info('request', { url: req.url });
+  const handled = await serveStatic(req, res, '.');
+  if (handled) {
+    info('serverd by static');
+    return;
+  }
 
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html');
-    const module = await import('../../app/universal/counter-apus.js');
-    const ComponentClass = module.default;
-    const component = new ComponentClass();
-    const renderedComponentTemplate = component.compileTemplate({});
-    const renderedMainTemplate = mainTemplate(renderedComponentTemplate, '../app/universal/counter-apus.js');
-    res.end(renderedMainTemplate);
-  });
+  const currentDir = url.fileURLToPath(new URL('.', import.meta.url));
+  const appDir = relative(currentDir, './app');
+  const componentPath = `${appDir}/${config.mainComponent}`;
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/html');
+  const module = await import(componentPath);
+  const ComponentClass = module.default;
+  const component = new ComponentClass();
+  const renderedComponentTemplate = component.compileTemplate({});
+  const renderedMainTemplate = mainTemplate(renderedComponentTemplate, componentPath);
+  res.end(renderedMainTemplate);
+});
+
+function serve(config) {
+  const server = createServer(
+    createHandler(config),
+  );
+  const port = config.port || DEFAULT_PORT;
+  const hostname = config.hostname || DEFAULT_HOSTNAME;
 
   server.listen(port, hostname, () => {
     log('server started', { hostname, port });
