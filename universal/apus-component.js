@@ -1,4 +1,3 @@
-import { uniqueId } from './utils/ids.js';
 import { info, warn } from './utils/logging.js';
 import { kebabize } from './utils/strings.js';
 import { html } from './utils/tags.js';
@@ -104,15 +103,26 @@ class ApusComponent extends HTMLElement {
       );
     });
 
-    const uuid = uniqueId();
+    let replaced = 0;
     templateString = templateString.replace(
       eventRegex,
-      `data-eventid="${uuid}" $<all>`,
+      (_, all) => {
+        replaced += 1;
+        return `data-eventid="${replaced}" ${all}`;
+      },
     );
+
+    let stylesString = '';
+    if (this.styles) {
+      stylesString = `<style>
+        ${this.styles()}
+      </style>`;
+    }
 
     return html`
     <${componentName} ${this.propsTemplate(this.data)}">
       <template shadowrootmode="open">
+        ${stylesString}
         ${templateString}
       </template>
     </${componentName}>

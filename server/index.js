@@ -15,7 +15,6 @@ const mainTemplate = (component, componentImport) => html`
   <meta charset="utf-8">
   <title>Apus</title>
   <link rel="prefetch" href="/universal/utils/tags.js" />
-  <link rel="prefetch" href="/universal/utils/ids.js" />
   <link rel="prefetch" href="/universal/utils/logging.js" />
   <link rel="prefetch" href="/universal/utils/strings.js" />
   <link rel="prefetch" href="/universal/utils/environment.js" />
@@ -25,6 +24,9 @@ const mainTemplate = (component, componentImport) => html`
 <body>
   ${component}
   <script type="module" src="${componentImport}"></script>
+  <div>
+    <span>test span</span>
+  </div>
 </body>
 
 </html>
