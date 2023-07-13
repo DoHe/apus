@@ -20,10 +20,29 @@ class ApusComponent extends HTMLElement {
       throw new TypeError('Must override template()');
     }
 
-    this.data = {};
+    const apusComponent = this;
+    const data = {};
     Object.entries(this.props()).forEach(([propName, prop]) => {
-      this.data[propName] = prop.default;
+      const maskedPropName = `#${propName}`;
+      Object.defineProperty(data, propName, {
+        get() {
+          return this[maskedPropName].value;
+        },
+        set(value) {
+          apusComponent.handleValueChange(
+            propName,
+            apusComponent.data[maskedPropName],
+            value,
+          );
+        },
+      });
+      data[maskedPropName] = {
+        value: prop.default,
+        type: prop.type,
+      };
     });
+
+    this.data = data;
 
     if (isBrowser()) {
       const internals = this.attachInternals();
@@ -51,16 +70,16 @@ class ApusComponent extends HTMLElement {
     this.handleValueChange(property, oldValue, newValue);
   }
 
-  handleValueChange(property, oldValue, newValue) {
+  handleValueChange(name, oldValue, newValue) {
+    const maskedName = `#${name}`;
     info('value changed', {
-      property, oldValue, newValue, source: this,
+      name, maskedName, oldValue, newValue, source: this,
     });
     if (oldValue === newValue) return;
-    this[property] = newValue;
-    if (property in this.data) {
-      const propType = this.props()[property].type;
+    if (name in this.data) {
+      const dataType = this.data[maskedName].type;
       let parsedNewValue = newValue;
-      switch (propType) {
+      switch (dataType) {
         case 'int':
           parsedNewValue = parseInt(newValue, 10);
           break;
@@ -69,8 +88,8 @@ class ApusComponent extends HTMLElement {
           break;
         default:
       }
-      this.data[property] = parsedNewValue;
-      this.shadow.querySelector(`[data-propid="${property}"]`).innerHTML = newValue;
+      this.data[maskedName].value = parsedNewValue;
+      this.shadow.querySelector(`[data-propid="${name}"]`).innerHTML = newValue;
     }
   }
 

@@ -22,11 +22,11 @@ class CounterApus extends ApusComponent {
   }
 
   increaseCount() {
-    this.handleValueChange('count', this.data.count, this.data.count + 1);
+    this.data.count += 1;
   }
 
   decreaseCount() {
-    this.handleValueChange('count', this.data.count, this.data.count - 1);
+    this.data.count -= 1;
   }
 }
 
