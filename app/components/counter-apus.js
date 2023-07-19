@@ -8,16 +8,27 @@ class CounterApus extends ApusComponent {
 
   styles() {
     return css`
-      span {
+      .count {
         color: red;
-      }`;
+      }
+
+      .container {
+        margin: 10px;
+      }
+
+      button {
+        min-height: 30px;
+      }
+    `;
   }
 
   template() {
     return html`
-    <button @click="increaseCount">+</button>
-    {{ count }}
-    <button @click="decreaseCount">-</button>
+    <div class="container">
+      <button @click="increaseCount">➕</button>
+      <span class="count">{{ count }}</span>
+      <button @click="decreaseCount">➖</button>
+    </div>
   `;
   }
 

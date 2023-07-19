@@ -6,30 +6,43 @@ import './shim.js';
 import { html } from '../utils/tags.js';
 import { info, log } from '../utils/logging.js';
 import serveStatic from './static.js';
+import { kebabize } from '../utils/strings.js';
 
 const DEFAULT_HOSTNAME = '127.0.0.1';
 const DEFAULT_PORT = 8080;
 
-const mainTemplate = (component, componentImport) => html`
+const componentWrapperTemplate = (component, componentImport) => html`
+${component}
+<script type="module" src="${componentImport}"></script>
+`;
+
+const clientOnlyComponentWrapperTemplate = (componentname, componentImport) => html`
+<${componentname}></${componentname}>
+<script type="module" src="${componentImport}"></script>
+`;
+
+const mainTemplate = ({
+  lang = 'en',
+  title = 'apus',
+  head = '',
+  body = '',
+}) => html`
 <!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 
 <head>
   <meta charset="utf-8">
-  <title>Apus</title>
-  <link rel="prefetch" href="/framework/universal/utils/tags.js" />
-  <link rel="prefetch" href="/framework/universal/utils/logging.js" />
-  <link rel="prefetch" href="/framework/universal/utils/strings.js" />
-  <link rel="prefetch" href="/framework/universal/utils/environment.js" />
-  <link rel="prefetch" href="/framework/universal/universal/apus-component.js" />
+  <title>${title}</title>
+  <link rel="prefetch" href="/apus/utils/tags.js" />
+  <link rel="prefetch" href="/apus/utils/logging.js" />
+  <link rel="prefetch" href="/apus/utils/strings.js" />
+  <link rel="prefetch" href="/apus/utils/environment.js" />
+  <link rel="prefetch" href="/apus/universal/universal/apus-component.js" />
+  ${head}
 </head>
 
 <body>
-  ${component}
-  <script type="module" src="${componentImport}"></script>
-  <div>
-    <span>test span</span>
-  </div>
+  ${body}
 </body>
 
 </html>
@@ -51,8 +64,13 @@ const createHandler = (config) => (async (req, res) => {
   const module = await import(componentPath);
   const ComponentClass = module.default;
   const component = new ComponentClass();
-  const renderedComponentTemplate = component.compileTemplate({});
-  const renderedMainTemplate = mainTemplate(renderedComponentTemplate, componentPath);
+  const renderedComponentTemplate = component.compileTemplate();
+  const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, componentPath);
+  /* const componentWrapper = clientOnlyComponentWrapperTemplate(
+    kebabize(ComponentClass.name),
+    componentPath,
+  ); */
+  const renderedMainTemplate = mainTemplate({ body: componentWrapper });
   res.end(renderedMainTemplate);
 });
 

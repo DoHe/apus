@@ -52,7 +52,7 @@ class ApusComponent extends HTMLElement {
         this.shadow = this.attachShadow({
           mode: 'open',
         });
-        this.shadow.innerHTML = this.compileTemplate();
+        this.shadow.innerHTML = this.compileShadowTemplate();
       }
 
       this.registerEvents();
@@ -111,9 +111,7 @@ class ApusComponent extends HTMLElement {
     }
   }
 
-  compileTemplate() {
-    const componentName = kebabize(this.constructor.name);
-
+  compileShadowTemplate() {
     let templateString = this.template();
     Object.keys(this.props()).forEach((propName) => {
       templateString = templateString.replace(
@@ -139,10 +137,17 @@ class ApusComponent extends HTMLElement {
     }
 
     return html`
+    ${stylesString}
+    ${templateString}
+  `;
+  }
+
+  compileTemplate() {
+    const componentName = kebabize(this.constructor.name);
+    return html`
     <${componentName} ${this.propsTemplate(this.data)}">
       <template shadowrootmode="open">
-        ${stylesString}
-        ${templateString}
+        ${this.compileShadowTemplate()}
       </template>
     </${componentName}>
   `;
