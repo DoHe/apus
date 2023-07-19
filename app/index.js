@@ -1,5 +1,5 @@
-import config from './apus.js';
+import { serve } from '../apus/server/server.js';
 
-import { serve } from '../framework/server/server.js';
+import config from './apus.js';
 
 serve(config);

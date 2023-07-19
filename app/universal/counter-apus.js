@@ -1,5 +1,5 @@
-import ApusComponent from '../../framework/universal/apus-component.js';
-import { css, html } from '../../framework/universal/utils/tags.js';
+import { css, html } from '../../apus/utils/tags.js';
+import ApusComponent from '../../apus/universal/apus-component.js';
 
 class CounterApus extends ApusComponent {
   props() {

@@ -3,8 +3,8 @@ import { relative } from 'path';
 import { createServer } from 'http';
 
 import './shim.js';
-import { html } from '../universal/utils/tags.js';
-import { info, log } from '../universal/utils/logging.js';
+import { html } from '../utils/tags.js';
+import { info, log } from '../utils/logging.js';
 import serveStatic from './static.js';
 
 const DEFAULT_HOSTNAME = '127.0.0.1';

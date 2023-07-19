@@ -1,7 +1,7 @@
-import { info, warn } from './utils/logging.js';
-import { kebabize } from './utils/strings.js';
-import { html } from './utils/tags.js';
-import { isBrowser } from './utils/environment.js';
+import { info, warn } from '../utils/logging.js';
+import { kebabize } from '../utils/strings.js';
+import { html } from '../utils/tags.js';
+import { isBrowser } from '../utils/environment.js';
 
 const eventRegex = /(?<all>(data-eventid="(?<id>\S*)" )?@(?<event>\S*)="(?<funct>\S*)")/g;
 
