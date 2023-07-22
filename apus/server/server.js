@@ -26,6 +26,7 @@ const mainTemplate = ({
   title = 'apus',
   head = '',
   body = '',
+  config = {},
 }) => html`
 <!DOCTYPE html>
 <html lang="${lang}">
@@ -42,6 +43,7 @@ const mainTemplate = ({
 </head>
 
 <body>
+  <script>window.apus = { config:${JSON.stringify(config)} }</script>
   ${body}
 </body>
 
@@ -70,11 +72,12 @@ const createHandler = (config) => (async (req, res) => {
     kebabize(ComponentClass.name),
     componentPath,
   ); */
-  const renderedMainTemplate = mainTemplate({ body: componentWrapper });
+  const renderedMainTemplate = mainTemplate({ body: componentWrapper, config });
   res.end(renderedMainTemplate);
 });
 
 function serve(config) {
+  global.apus = { config };
   const server = createServer(
     createHandler(config),
   );

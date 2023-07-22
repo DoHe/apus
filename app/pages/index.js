@@ -19,9 +19,9 @@ class IndexPage extends ApusComponent {
   }
 
   components() {
-    return {
+    return [
       CounterApus,
-    };
+    ];
   }
 }
 

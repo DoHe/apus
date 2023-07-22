@@ -23,7 +23,7 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    'import/extensions': 'off',
+    'import/extensions': ['error', 'always'],
     'import/prefer-default-export': 'off',
     'class-methods-use-this': 'off',
     'no-restricted-syntax': 'off',

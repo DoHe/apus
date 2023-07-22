@@ -4,6 +4,9 @@ import { html } from '../utils/tags.js';
 import { isBrowser } from '../utils/environment.js';
 
 const eventRegex = /(?<all>(data-eventid="(?<id>\S*)" )?@(?<event>\S*)="(?<funct>\S*)")/g;
+const componentRegexTemplate = (componentName) => (
+  `(?<componentBegin><${componentName}[\\s\\S]*?>)(?<content>[\\s\\S]*?)(?<componentEnd><\\/${componentName}>)`
+);
 
 class ApusComponent extends HTMLElement {
   constructor() {
@@ -113,33 +116,72 @@ class ApusComponent extends HTMLElement {
 
   compileShadowTemplate() {
     let templateString = this.template();
-    Object.keys(this.props()).forEach((propName) => {
-      templateString = templateString.replace(
-        `{{ ${propName} }}`,
-        `<span data-propid="${propName}">${this.data[propName]}</span>`,
+    templateString = this.resolveVariables(templateString);
+    templateString = this.resolveEvents(templateString);
+    templateString = this.resolveComponents(templateString);
+    const stylesString = this.compileStyles();
+
+    return html`
+    ${stylesString}
+    ${templateString}
+  `;
+  }
+
+  resolveVariables(compiled) {
+    let templateString = compiled;
+    Object.keys(this.data).forEach((maskedDataName) => {
+      const dataName = maskedDataName.replace('#', '');
+      templateString = templateString.replaceAll(
+        `{{ ${dataName} }}`,
+        `<span data-propid="${dataName}">${this.data[dataName]}</span>`,
       );
     });
+    return templateString;
+  }
 
+  resolveEvents(compiled) {
     let replaced = 0;
-    templateString = templateString.replace(
+    return compiled.replace(
       eventRegex,
       (_, all) => {
         replaced += 1;
         return `data-eventid="${replaced}" ${all}`;
       },
     );
+  }
 
-    let stylesString = '';
-    if (this.styles) {
-      stylesString = `<style>
+  resolveComponents(compiled) {
+    if (isBrowser() || !this.components) {
+      return compiled;
+    }
+    let templateString = compiled;
+    this.components().forEach((ComponentClass) => {
+      const elementName = kebabize(ComponentClass.name);
+      const regex = new RegExp(componentRegexTemplate(elementName), 'g');
+      const component = new ComponentClass(); // TODO: pass props
+      const componentTemplate = component.compileShadowTemplate();
+      templateString = templateString.replaceAll(
+        regex,
+        (_, componentBegin, content, componentEnd) => (
+          `${componentBegin}
+            <template shadowrootmode="open">
+              ${componentTemplate}
+            </template>
+            ${content}
+          ${componentEnd}`
+        ),
+      );
+    });
+    return templateString;
+  }
+
+  compileStyles() {
+    if (!this.styles) {
+      return '';
+    }
+    return `<style>
         ${this.styles()}
       </style>`;
-    }
-
-    return html`
-    ${stylesString}
-    ${templateString}
-  `;
   }
 
   compileTemplate() {
