@@ -5,11 +5,11 @@ import { isBrowser } from '../utils/environment.js';
 
 const eventRegex = /(?<all>(data-eventid="(?<id>\S*)" )?@(?<event>\S*)="(?<funct>\S*)")/g;
 const componentRegexTemplate = (componentName) => (
-  `(?<componentBegin><${componentName}[\\s\\S]*?>)(?<content>[\\s\\S]*?)(?<componentEnd><\\/${componentName}>)`
+  `(?<componentBegin><${componentName} (?<props>[\\s\\S]*?)>)(?<content>[\\s\\S]*?)(?<componentEnd><\\/${componentName}>)`
 );
 
 class ApusComponent extends HTMLElement {
-  constructor() {
+  constructor(initialData = {}) {
     super();
     if (new.target === ApusComponent) {
       throw new TypeError('Cannot construct ApusComponent instances directly');
@@ -44,6 +44,12 @@ class ApusComponent extends HTMLElement {
         type: prop.type,
       };
     });
+
+    if (initialData) {
+      Object.values(initialData).forEach(([propName, propValue]) => {
+        data[propName] = propValue;
+      });
+    }
 
     this.data = data;
 
@@ -158,18 +164,19 @@ class ApusComponent extends HTMLElement {
     this.components().forEach((ComponentClass) => {
       const elementName = kebabize(ComponentClass.name);
       const regex = new RegExp(componentRegexTemplate(elementName), 'g');
-      const component = new ComponentClass(); // TODO: pass props
-      const componentTemplate = component.compileShadowTemplate();
       templateString = templateString.replaceAll(
         regex,
-        (_, componentBegin, content, componentEnd) => (
-          `${componentBegin}
+        (_, componentBegin, props, content, componentEnd) => {
+          const initialData = this.parseProps(props);
+          const component = new ComponentClass(initialData);
+          const componentTemplate = component.compileShadowTemplate();
+          return `${componentBegin}
             <template shadowrootmode="open">
               ${componentTemplate}
             </template>
             ${content}
-          ${componentEnd}`
-        ),
+          ${componentEnd}`;
+        },
       );
     });
     return templateString;
@@ -201,6 +208,16 @@ class ApusComponent extends HTMLElement {
       propsString += `${propName}="${this.data[propName]}" `;
     });
     return propsString;
+  }
+
+  parseProps(propsString) {
+    const propsArray = propsString.replaceAll(/\s/g, ' ').split(' ');
+    const props = {};
+    propsArray.forEach((prop) => {
+      const [propName, propValue] = prop.split('=');
+      props[propName] = propValue.replaceAll('"', '');
+    });
+    return props;
   }
 }
 
