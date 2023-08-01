@@ -25,9 +25,12 @@ class CounterApus extends ApusComponent {
   template() {
     return html`
     <div class="container">
+      <slot name="start"></slot>
       <button @click="increaseCount">➕</button>
       <span class="count">{{ count }}</span>
+      <slot></slot>
       <button @click="decreaseCount">➖</button>
+      <slot name="end"></slot>
     </div>
   `;
   }

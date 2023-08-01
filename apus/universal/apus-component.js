@@ -192,17 +192,10 @@ class ApusComponent extends HTMLElement {
       </style>`;
   }
 
-  compileTemplate(isMain = false) {
+  compileTemplate() {
     const componentName = kebabize(this.constructor.name);
-    if (isMain) {
-      return html`
-      <${componentName}">
-        ${this.compileShadowTemplate()}
-      </${componentName}>
-    `;
-    }
     return html`
-    <${componentName}">
+    <${componentName}>
       <template shadowrootmode="open">
         ${this.compileShadowTemplate()}
       </template>

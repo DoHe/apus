@@ -5,8 +5,13 @@ import CounterApus from '../components/counter-apus.js';
 class IndexPage extends ApusComponent {
   template() {
     return html`
-    <counter-apus count="30"></counter-apus>
-    <counter-apus count="20"></counter-apus>
+    <counter-apus count="30">
+      default slot
+    </counter-apus>
+    <counter-apus count="20">
+      <span slot="start">start</span>
+      <span slot="end">end</span>
+    </counter-apus>
     `;
   }
 

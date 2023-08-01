@@ -6,7 +6,6 @@ import './shim.js';
 import { html } from '../utils/tags.js';
 import { info, log } from '../utils/logging.js';
 import serveStatic from './static.js';
-import { kebabize } from '../utils/strings.js';
 
 const DEFAULT_HOSTNAME = '127.0.0.1';
 const DEFAULT_PORT = 8080;
@@ -66,7 +65,7 @@ const createHandler = (config) => (async (req, res) => {
   const module = await import(componentPath);
   const ComponentClass = module.default;
   const component = new ComponentClass();
-  const renderedComponentTemplate = component.compileTemplate(true);
+  const renderedComponentTemplate = component.compileTemplate();
   const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, componentPath);
   /* const componentWrapper = clientOnlyComponentWrapperTemplate(
     kebabize(ComponentClass.name),
