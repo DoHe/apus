@@ -1,8 +1,7 @@
-import * as url from 'url';
-import { relative } from 'path';
 import { createServer } from 'http';
 
 import './shim.js';
+import loadPages from './pages.js';
 import { html } from '../utils/tags.js';
 import { info, log } from '../utils/logging.js';
 import serveStatic from './static.js';
@@ -12,11 +11,6 @@ const DEFAULT_PORT = 8080;
 
 const componentWrapperTemplate = (component, componentImport) => html`
 ${component}
-<script type="module" src="${componentImport}"></script>
-`;
-
-const clientOnlyComponentWrapperTemplate = (componentname, componentImport) => html`
-<${componentname}></${componentname}>
 <script type="module" src="${componentImport}"></script>
 `;
 
@@ -37,7 +31,15 @@ const mainTemplate = ({
   <link rel="prefetch" href="/apus/utils/logging.js" />
   <link rel="prefetch" href="/apus/utils/strings.js" />
   <link rel="prefetch" href="/apus/utils/environment.js" />
-  <link rel="prefetch" href="/apus/universal/universal/apus-component.js" />
+  <link rel="prefetch" href="/apus/universal/apus-component.js" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="app/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="app/static/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="app/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="app/static/favicon-16.png">
+  <link rel="manifest" href="app/static/manifest.json">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
   ${head}
 </head>
 
@@ -49,7 +51,7 @@ const mainTemplate = ({
 </html>
 `;
 
-const createHandler = (config) => (async (req, res) => {
+const createHandler = (config, pages) => (async (req, res) => {
   info('request', { url: req.url });
   const handled = await serveStatic(req, res, '.');
   if (handled) {
@@ -57,28 +59,28 @@ const createHandler = (config) => (async (req, res) => {
     return;
   }
 
-  const currentDir = url.fileURLToPath(new URL('.', import.meta.url));
-  const appDir = relative(currentDir, './app');
-  const componentPath = `${appDir}/${config.mainComponent}`;
+  const page = pages.get(req.url);
+  if (!page) {
+    res.statusCode = 400;
+    res.end('Path could not be found');
+    return;
+  }
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/html');
-  const module = await import(componentPath);
+  const { module, path } = page;
   const ComponentClass = module.default;
   const component = new ComponentClass();
   const renderedComponentTemplate = component.compileTemplate();
-  const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, componentPath);
-  /* const componentWrapper = clientOnlyComponentWrapperTemplate(
-    kebabize(ComponentClass.name),
-    componentPath,
-  ); */
+  const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, path);
   const renderedMainTemplate = mainTemplate({ body: componentWrapper, config });
   res.end(renderedMainTemplate);
 });
 
-function serve(config) {
+async function serve(config) {
   global.apus = { config };
+  const pages = await loadPages('./app/pages');
   const server = createServer(
-    createHandler(config),
+    createHandler(config, pages),
   );
   const port = config.port || DEFAULT_PORT;
   const hostname = config.hostname || DEFAULT_HOSTNAME;
