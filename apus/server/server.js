@@ -66,7 +66,7 @@ const createHandler = (config) => (async (req, res) => {
   const module = await import(componentPath);
   const ComponentClass = module.default;
   const component = new ComponentClass();
-  const renderedComponentTemplate = component.compileTemplate();
+  const renderedComponentTemplate = component.compileTemplate(true);
   const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, componentPath);
   /* const componentWrapper = clientOnlyComponentWrapperTemplate(
     kebabize(ComponentClass.name),

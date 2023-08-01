@@ -25,6 +25,8 @@ class ApusComponent extends HTMLElement {
 
     const apusComponent = this;
     const data = {};
+    this.data = data;
+
     Object.entries(this.props()).forEach(([propName, prop]) => {
       const maskedPropName = `#${propName}`;
       Object.defineProperty(data, propName, {
@@ -46,13 +48,10 @@ class ApusComponent extends HTMLElement {
     });
 
     if (initialData) {
-      Object.values(initialData).forEach(([propName, propValue]) => {
+      Object.entries(initialData).forEach(([propName, propValue]) => {
         data[propName] = propValue;
       });
     }
-
-    this.data = data;
-
     if (isBrowser()) {
       const internals = this.attachInternals();
       this.shadow = internals.shadowRoot;
@@ -98,7 +97,9 @@ class ApusComponent extends HTMLElement {
         default:
       }
       this.data[maskedName].value = parsedNewValue;
-      this.shadow.querySelector(`[data-propid="${name}"]`).innerHTML = newValue;
+      if (this.shadow) {
+        this.shadow.querySelector(`[data-propid="${name}"]`).innerHTML = newValue;
+      }
     }
   }
 
@@ -191,23 +192,22 @@ class ApusComponent extends HTMLElement {
       </style>`;
   }
 
-  compileTemplate() {
+  compileTemplate(isMain = false) {
     const componentName = kebabize(this.constructor.name);
+    if (isMain) {
+      return html`
+      <${componentName}">
+        ${this.compileShadowTemplate()}
+      </${componentName}>
+    `;
+    }
     return html`
-    <${componentName} ${this.propsTemplate(this.data)}">
+    <${componentName}">
       <template shadowrootmode="open">
         ${this.compileShadowTemplate()}
       </template>
     </${componentName}>
   `;
-  }
-
-  propsTemplate() {
-    let propsString = '';
-    Object.keys(this.props()).forEach((propName) => {
-      propsString += `${propName}="${this.data[propName]}" `;
-    });
-    return propsString;
   }
 
   parseProps(propsString) {
