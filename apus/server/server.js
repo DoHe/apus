@@ -72,7 +72,11 @@ const createHandler = (config, pages) => (async (req, res) => {
   const component = new ComponentClass();
   const renderedComponentTemplate = component.compileTemplate();
   const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, path);
-  const renderedMainTemplate = mainTemplate({ body: componentWrapper, config });
+  const title = component.title();
+  const head = component.head();
+  const renderedMainTemplate = mainTemplate({
+    body: componentWrapper, title, head, config,
+  });
   res.end(renderedMainTemplate);
 });
 

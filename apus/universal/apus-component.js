@@ -19,7 +19,7 @@ class ApusComponent extends HTMLElement {
       throw new TypeError('Must override props()');
     }
 
-    if (typeof this.props !== 'function') {
+    if (typeof this.template !== 'function') {
       throw new TypeError('Must override template()');
     }
 

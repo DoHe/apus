@@ -22,7 +22,7 @@ const serveStatic = async (req, res, staticDir) => {
   };
 
   try {
-    const data = await fs.readFile(pathname, 'utf8');
+    const data = await fs.readFile(pathname);
     res.statusCode = 200;
     res.setHeader('Content-type', map[ext] || 'text/plain');
     res.end(data);
