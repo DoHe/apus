@@ -12,7 +12,9 @@ class CounterApus extends ApusComponent {
         color: red;
       }
 
-      .container {
+      .counter-container {
+        display: flex;
+        justify-content: center;
         margin: 10px;
       }
 
@@ -24,13 +26,15 @@ class CounterApus extends ApusComponent {
 
   template() {
     return html`
-    <div class="container">
-      <slot name="start"></slot>
-      <button @click="increaseCount">➕</button>
-      <span class="count">{{ count }}</span>
-      <slot></slot>
-      <button @click="decreaseCount">➖</button>
-      <slot name="end"></slot>
+    <div class="counter-container">
+      <div>
+        <slot name="start"></slot>
+        <button @click="increaseCount">➕</button>
+        <span class="count">{{ count }}</span>
+        <slot></slot>
+        <button @click="decreaseCount">➖</button>
+        <slot name="end"></slot>
+      </div>
     </div>
   `;
   }

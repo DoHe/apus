@@ -19,13 +19,6 @@ class IndexPage extends ApusComponent {
     return 'Index';
   }
 
-  head() {
-    return html`
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    `;
-  }
-
   props() {
     return {};
   }

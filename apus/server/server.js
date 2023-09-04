@@ -5,6 +5,7 @@ import loadPages from './pages.js';
 import { html } from '../utils/tags.js';
 import { info, log } from '../utils/logging.js';
 import serveStatic from './static.js';
+import loadDefaultLayout from './layouts.js';
 
 const DEFAULT_HOSTNAME = '127.0.0.1';
 const DEFAULT_PORT = 8080;
@@ -51,7 +52,7 @@ const mainTemplate = ({
 </html>
 `;
 
-const createHandler = (config, pages) => (async (req, res) => {
+const createHandler = (config, pages, defaultLayout) => (async (req, res) => {
   info('request', { url: req.url });
   const handled = await serveStatic(req, res, '.');
   if (handled) {
@@ -72,10 +73,15 @@ const createHandler = (config, pages) => (async (req, res) => {
   const component = new ComponentClass();
   const renderedComponentTemplate = component.compileTemplate();
   const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, path);
-  const title = component.title();
-  const head = component.head();
+  const title = component.title?.() || '';
+  let head = component.head?.() || '';
+  let body = componentWrapper;
+  if (defaultLayout) {
+    body = defaultLayout.body(body);
+    head = defaultLayout.head(head);
+  }
   const renderedMainTemplate = mainTemplate({
-    body: componentWrapper, title, head, config,
+    body, title, head, config,
   });
   res.end(renderedMainTemplate);
 });
@@ -83,8 +89,9 @@ const createHandler = (config, pages) => (async (req, res) => {
 async function serve(config) {
   global.apus = { config };
   const pages = await loadPages('./app/pages');
+  const defaultLayout = await loadDefaultLayout('../../app/layouts');
   const server = createServer(
-    createHandler(config, pages),
+    createHandler(config, pages, defaultLayout),
   );
   const port = config.port || DEFAULT_PORT;
   const hostname = config.hostname || DEFAULT_HOSTNAME;
