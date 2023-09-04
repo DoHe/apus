@@ -4,6 +4,7 @@ import { html } from '../utils/tags.js';
 import { isBrowser } from '../utils/environment.js';
 
 const eventRegex = /(?<all>(data-eventid="(?<id>\S*)" )?@(?<event>\S*)="(?<funct>\S*)")/g;
+const conditionRegex = /<.*? if="(?<func>\S*?)"[\s\S]*?<\/.*?>/g;
 const componentRegexTemplate = (componentName) => (
   `(?<componentBegin><${componentName} (?<props>[\\s\\S]*?)>)(?<content>[\\s\\S]*?)(?<componentEnd><\\/${componentName}>)`
 );
@@ -99,6 +100,20 @@ class ApusComponent extends HTMLElement {
       this.data[maskedName].value = parsedNewValue;
       if (this.shadow) {
         this.shadow.querySelector(`[data-propid="${name}"]`).innerHTML = newValue;
+        for (const element of this.shadow.querySelectorAll('[if]')) {
+          const functName = element.getAttribute('if');
+          const condition = this[functName]?.();
+          if (element.tagName === 'TEMPLATE') {
+            if (!condition) {
+              continue;
+            }
+            element.outerHTML = element.innerHTML;
+          } else if (condition) {
+            continue;
+          } else {
+            element.outerHTML = `<template if="${functName}">${element.outerHTML}</template>`;
+          }
+        }
       }
     }
   }
@@ -125,6 +140,7 @@ class ApusComponent extends HTMLElement {
     let templateString = this.template();
     templateString = this.resolveVariables(templateString);
     templateString = this.resolveEvents(templateString);
+    templateString = this.resolveConditions(templateString);
     templateString = this.resolveComponents(templateString);
     const stylesString = this.compileStyles();
 
@@ -153,6 +169,18 @@ class ApusComponent extends HTMLElement {
       (_, all) => {
         replaced += 1;
         return `data-eventid="${replaced}" ${all}`;
+      },
+    );
+  }
+
+  resolveConditions(compiled) {
+    return compiled.replaceAll(
+      conditionRegex,
+      (match, func) => {
+        if (this[func]?.()) {
+          return match;
+        }
+        return `<template if="${func}">${match}</template>`;
       },
     );
   }

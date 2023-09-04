@@ -26,17 +26,18 @@ class CounterApus extends ApusComponent {
 
   template() {
     return html`
-    <div class="counter-container">
-      <div>
-        <slot name="start"></slot>
-        <button @click="increaseCount">➕</button>
-        <span class="count">{{ count }}</span>
-        <slot></slot>
-        <button @click="decreaseCount">➖</button>
-        <slot name="end"></slot>
+      <div class="counter-container">
+        <div>
+          <slot name="start"></slot>
+          <button @click="increaseCount">➕</button>
+          <span class="count">{{ count }}</span>
+          <slot></slot>
+          <button @click="decreaseCount">➖</button>
+          <slot name="end"></slot>
+          <div if="isCountHigh">That is a high count</div>
+        </div>
       </div>
-    </div>
-  `;
+    `;
   }
 
   increaseCount() {
@@ -45,6 +46,10 @@ class CounterApus extends ApusComponent {
 
   decreaseCount() {
     this.data.count -= 1;
+  }
+
+  isCountHigh() {
+    return this.data.count > 20;
   }
 }
 
