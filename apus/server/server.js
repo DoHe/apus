@@ -71,8 +71,13 @@ const createHandler = (config, pages, defaultLayout) => (async (req, res) => {
   const { module, path } = page;
   const ComponentClass = module.default;
   const component = new ComponentClass();
-  const renderedComponentTemplate = component.compileTemplate();
-  const componentWrapper = componentWrapperTemplate(renderedComponentTemplate, path);
+  let componentTemplate;
+  if (component.mode?.() !== 'client') {
+    componentTemplate = component.compileTemplate();
+  } else {
+    componentTemplate = component.template();
+  }
+  const componentWrapper = componentWrapperTemplate(componentTemplate, path);
   const title = component.title?.() || '';
   let head = component.head?.() || '';
   let body = componentWrapper;

@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import '../server/shim.js';
 import ApusComponent from './apus-component.js';
 
