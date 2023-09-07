@@ -93,7 +93,8 @@ const createHandler = (config, pages, defaultLayout) => (async (req, res) => {
 
 async function serve(config) {
   global.apus = { config };
-  const pages = await loadPages('./app/pages');
+  const { rootDir } = config;
+  const pages = await loadPages(`${rootDir}/pages`);
   const defaultLayout = await loadDefaultLayout('../../app/layouts');
   const server = createServer(
     createHandler(config, pages, defaultLayout),

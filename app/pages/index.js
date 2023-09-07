@@ -1,5 +1,5 @@
-import { html } from '../../apus/utils/tags.js';
-import ApusComponent from '../../apus/universal/apus-component.js';
+import { html } from 'apus/utils/tags.js';
+import ApusComponent from 'apus/universal/apus-component.js';
 import CounterApus from '../components/counter-apus.js';
 
 class IndexPage extends ApusComponent {
@@ -31,5 +31,7 @@ class IndexPage extends ApusComponent {
 }
 
 customElements.define('index-page', IndexPage);
+
+console.log('registered index page');
 
 export default IndexPage;
