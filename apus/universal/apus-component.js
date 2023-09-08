@@ -12,7 +12,6 @@ const componentRegexTemplate = (componentName) => (
 class ApusComponent extends HTMLElement {
   constructor(initialData = {}) {
     super();
-    console.log(`init ${this.constructor.name}`);
     if (new.target === ApusComponent) {
       throw new TypeError('Cannot construct ApusComponent instances directly');
     }

@@ -1,5 +1,8 @@
 import { createServer } from 'http';
 
+import { createServer as createViteServer } from 'vite';
+import connect from 'connect';
+
 import './shim.js';
 import loadPages from './pages.js';
 import { html } from '../utils/tags.js';
@@ -52,56 +55,74 @@ const mainTemplate = ({
 </html>
 `;
 
-const createHandler = (config, pages, defaultLayout) => (async (req, res) => {
-  info('request', { url: req.url });
-  const handled = await serveStatic(req, res, '.');
-  if (handled) {
-    info('serverd by static');
-    return;
-  }
+const createHandler = (config, pages, defaultLayout, vite) => (async (req, res, next) => {
+  try {
+    info('request', { url: req.url });
+    const { rootDir } = config;
+    const handled = await serveStatic(req, res, rootDir);
+    if (handled) {
+      info('serverd by static');
+      return;
+    }
 
-  const page = pages.get(req.url);
-  if (!page) {
-    res.statusCode = 400;
-    res.end('Path could not be found');
-    return;
+    const page = pages.get(req.url);
+    if (!page) {
+      res.statusCode = 400;
+      res.end('Path could not be found');
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    const { module, path } = page;
+    const ComponentClass = module.default;
+    const component = new ComponentClass();
+    let componentTemplate;
+    if (component.mode?.() !== 'client') {
+      componentTemplate = component.compileTemplate();
+    } else {
+      componentTemplate = component.template();
+    }
+    const componentWrapper = componentWrapperTemplate(componentTemplate, path);
+    const title = component.title?.() || '';
+    let head = component.head?.() || '';
+    let body = componentWrapper;
+    if (defaultLayout) {
+      body = defaultLayout.body(body);
+      head = defaultLayout.head(head);
+    }
+    const renderedMainTemplate = mainTemplate({
+      body, title, head, config,
+    });
+
+    const url = req.originalUrl;
+    const template = await vite.transformIndexHtml(url, renderedMainTemplate);
+
+    res.end(template);
+  } catch (e) {
+    vite.ssrFixStacktrace(e);
+    next(e);
   }
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/html');
-  const { module, path } = page;
-  const ComponentClass = module.default;
-  const component = new ComponentClass();
-  let componentTemplate;
-  if (component.mode?.() !== 'client') {
-    componentTemplate = component.compileTemplate();
-  } else {
-    componentTemplate = component.template();
-  }
-  const componentWrapper = componentWrapperTemplate(componentTemplate, path);
-  const title = component.title?.() || '';
-  let head = component.head?.() || '';
-  let body = componentWrapper;
-  if (defaultLayout) {
-    body = defaultLayout.body(body);
-    head = defaultLayout.head(head);
-  }
-  const renderedMainTemplate = mainTemplate({
-    body, title, head, config,
-  });
-  res.end(renderedMainTemplate);
 });
 
 async function serve(config) {
+  const app = connect();
+
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'custom',
+  });
+  app.use(vite.middlewares);
+
   global.apus = { config };
   const { rootDir } = config;
   const pages = await loadPages(`${rootDir}/pages`);
   const defaultLayout = await loadDefaultLayout('../../app/layouts');
-  const server = createServer(
-    createHandler(config, pages, defaultLayout),
-  );
+  const handler = createHandler(config, pages, defaultLayout, vite);
+  app.use((req, res, next) => handler(req, res, next));
+
   const port = config.port || DEFAULT_PORT;
   const hostname = config.hostname || DEFAULT_HOSTNAME;
-
+  const server = createServer(app);
   server.listen(port, hostname, () => {
     log('server started', { hostname, port });
   });

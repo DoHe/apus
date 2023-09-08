@@ -22,7 +22,7 @@ const loadPages = async (pagesDir) => {
       urlPath,
       {
         module: await import(page),
-        path: `${urlPath}/index.js`,
+        path: `pages/${urlPath}/index.js`,
       }
       ,
     );

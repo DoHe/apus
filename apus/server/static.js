@@ -4,7 +4,7 @@ import * as url from 'url';
 
 const serveStatic = async (req, res, staticDir) => {
   const parsedUrl = url.parse(req.url);
-  const pathname = `${staticDir}${parsedUrl.pathname}`;
+  const pathname = `${staticDir}..${parsedUrl.pathname}`;
   const { ext } = path.parse(pathname);
   const map = {
     '.ico': 'image/x-icon',

@@ -4,8 +4,8 @@
   "description": "An example app",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon -w .. index.js",
-    "dev": "vite",
+    "start": "nodemon server.js",
+    "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview"
   },

@@ -32,6 +32,4 @@ class IndexPage extends ApusComponent {
 
 customElements.define('index-page', IndexPage);
 
-console.log('registered index page');
-
 export default IndexPage;
