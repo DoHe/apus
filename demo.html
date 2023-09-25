@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Web Component</title>
+</head>
+
+<body>
+    <comp-a>
+    </comp-a>
+
+    <comp-a>
+    </comp-a>
+
+    <div>
+        <span>Non shadow span!</span>
+    </div>
+
+    <comp-b>
+        <template shadowrootmode="open">
+            <div>
+                <span>I'm server-side rendered</span>
+            </div>
+        </template>
+    </comp-b>
+
+    <comp-b>
+    </comp-b>
+
+    <script>
+        class CompA extends HTMLElement {
+            constructor() {
+                super();
+                this.shadow = this.attachShadow({ mode: 'open' });
+                this.shadow.innerHTML = `
+                    <div>
+                        <span>HI!</span>
+                    </div>
+                    <style>
+                        span {
+                            color: blue;
+                        }
+                    </style>
+                `;
+            }
+        }
+
+        customElements.define('comp-a', CompA);
+
+        class CompB extends HTMLElement {
+            constructor() {
+                super();
+                const internals = this.attachInternals();
+                this.shadow = internals.shadowRoot;
+                if (!this.shadow) {
+                    this.shadow = this.attachShadow({ mode: 'open' });
+                    this.shadow.innerHTML = `
+                        <div>
+                            <span>I'm client-side rendered</span>
+                        </div>`;
+                }
+            }
+        }
+
+        customElements.define('comp-b', CompB);
+    </script>
+
+    <style>
+        span {
+            color: chocolate;
+        }
+    </style>
+</body>
+
+</html>
